@@ -1,5 +1,9 @@
+# temporary files
 .zsh*
+*.swp
+*.*~
 
+# build files
 *.class
 target
 
