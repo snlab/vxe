@@ -3,6 +3,12 @@
 *.swp
 *.*~
 
+# Eclipse
+*.classpath
+*.project
+*.xmi
+workspace
+
 # build files
 *.class
 target

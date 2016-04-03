@@ -33,7 +33,7 @@
     </plugins>
   </reporting>
   <modules>
-    <module>bytecode-analyzer</module>
     <module>vxe-api</module>
+    <module>vxe-system</module>
   </modules>
 </project>
