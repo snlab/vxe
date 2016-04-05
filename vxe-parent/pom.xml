@@ -21,19 +21,19 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>asm</groupId>
+        <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
         <version>5.1</version>
       </dependency>
 
       <dependency>
-        <groupId>asm</groupId>
+        <groupId>org.ow2.asm</groupId>
         <artifactId>asm-commons</artifactId>
         <version>5.1</version>
       </dependency>
 
       <dependency>
-        <groupId>asm</groupId>
+        <groupId>org.ow2.asm</groupId>
         <artifactId>asm-all</artifactId>
         <version>5.1</version>
       </dependency>
@@ -50,6 +50,12 @@
         <artifactId>mockito-all</artifactId>
         <version>1.10.19</version>
         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.7.20</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

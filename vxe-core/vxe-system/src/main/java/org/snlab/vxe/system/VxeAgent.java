@@ -3,7 +3,12 @@ package org.snlab.vxe.system;
 
 import java.lang.instrument.Instrumentation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class VxeAgent {
+
+    protected static Logger LOG = LoggerFactory.getLogger(VxeAgent.class);
 
     private static boolean loaded = false;
     private static Instrumentation instrumentation = null;
@@ -19,7 +24,7 @@ public class VxeAgent {
 
     private static void setup(String agentArgs, Instrumentation inst, String how) {
         if (loaded) {
-            System.out.println("[INFO] Vxe: VxeAgent already loaded, skipping");
+            LOG.warn("VxeAgent already loaded, skipping");
             return;
         }
         loaded = true;
@@ -31,7 +36,7 @@ public class VxeAgent {
         transformer = new VxeTransformer();
         instrumentation.addTransformer(transformer);
 
-        System.out.println("[INFO] Vxe: VxeAgent loaded as " + how);
+        LOG.info("VxeAgent loaded as {}", how);
     }
 
     public static byte[] getOriginalBytecode(Class<?> clazz) {

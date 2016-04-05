@@ -32,6 +32,7 @@
       </plugin>
     </plugins>
   </reporting>
+
   <modules>
     <module>vxe-api</module>
     <module>vxe-system</module>

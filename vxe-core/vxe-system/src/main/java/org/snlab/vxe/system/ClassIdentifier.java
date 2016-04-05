@@ -3,7 +3,7 @@ package org.snlab.vxe.system;
 
 import java.util.Objects;
 
-class ClassIdentifier {
+public class ClassIdentifier {
 
     private ClassLoader classLoader = null;
     private String className = null;
@@ -29,6 +29,20 @@ class ClassIdentifier {
     @Override
     public int hashCode() {
         return Objects.hash(this.classLoader, this.className);
+    }
+
+    /**
+     * @return the classLoader
+     */
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    /**
+     * @return the className
+     */
+    public String getClassName() {
+        return className;
     }
 }
 
