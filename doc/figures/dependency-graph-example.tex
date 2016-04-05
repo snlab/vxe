@@ -1,0 +1,42 @@
+
+\begin{figure}[htb]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}[node distance=2cm]
+			\node[state] (a) {$a$};
+			\node[state] (b) [right of=a] {$b$};
+			\node[state] (c) [below of=a, xshift=1cm] {$c$};
+
+			\path[<-] (a) edge node {} (c);
+			\path[<-] (b) edge node {} (c);
+		\end{tikzpicture}
+		\caption{The dependency graph of the statement ``c = a + b + 1;''}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}[node distance=2cm]
+			\node[state] (v1) {$v[1]$};
+			\node[state] (s1) [below of=v1] {$s[1]$};
+			\node[state] (v2) [right of=v1] {$v[2]$};
+			\node[state] (s2) [below of=v2] {$s[2]$};
+			\node (joint) [below of=s1, xshift=1cm] {};
+			\node[state] (ns1) [below of=joint] {$s[1]$};
+			\node[state] (ns2) [below of=ns1] {$s[1]$};
+
+			\path[<-]
+				(v1) edge node[left] {aload\_0} (s1)
+				(v2) edge node[right] {aload\_1} (s2)
+				(ns1) edge node[left] {iinc} (ns2)
+				(s1) edge (joint)
+				(s2) edge (joint);
+			\path[-]
+				(joint) edge node[left] {iadd} (ns1);
+		\end{tikzpicture}
+		\caption{The dependency graph of the compiled statement ``c = a + b;''}
+	\end{subfigure}
+	\caption{}
+	\label{fig:dependency-graph-examples}
+\end{figure}
+
