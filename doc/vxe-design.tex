@@ -1,0 +1,125 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath}
+
+\usepackage{xspace}
+\usepackage{subcaption}
+
+\usepackage{listings}
+\lstset{
+	basicstyle=\footnotesize\ttfamily,
+	language=Java,
+	keywordstyle=\bfseries,
+	captionpos=b,
+	frame=L
+}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows, automata}
+
+\newcommand\VXE{\emph{Virtual eXecution Environment}\xspace}
+
+\newcommand\challenge[1]{{\color{red} #1}}
+\newcommand\solution[1]{{\color{blue} #1}}
+
+\begin{document}
+
+\title{Design for FAST Virtual eXecution Environment}
+\author{Kai Gao\\Tsinghua University}
+\date{}
+\maketitle
+
+The \VXE is a crucial part of the FAST framework.  It can execute a function
+instance and report the fine-grained data dependencies automatically.  This
+document describes the current design, implementation considerations, and future
+improvement of the VXE.
+
+\section{The Target}
+
+The target of data dependency tracking is to answer the following questions:
+
+\begin{enumerate}
+	\item (The simpler form) Whether certain data have an effect on the output
+		of a function instance;
+	\item Which data have an effect on the certain output of a function
+		instance.
+\end{enumerate}
+
+
+\section{The Current Design}
+
+Currently we are using a relatively naive solution: after the program is
+actually executed, we build the dependency graph between all \emph{data units}
+by simulating the whole process on the bytecode level.  Here the \emph{data
+units} are a general form of representing data, which include frames with
+registers (required to simulate stacks), global static members and arrays.
+
+\paragraph{Generate dependency graph from bytecode}\hfill
+
+There are plenty of libraries that can be used to manipulate the bytecode, which
+saves us from implementing a compiler.  But there are disadvantages too, such as
+\challenge{the explosion of the dependency graph}. Consider the following example:
+
+\begin{lstlisting}[title={Example 1}, label=code:example-1]
+public int add1(int a, int b) {
+	int c = a + b + 1;
+	return c;
+}
+\end{lstlisting}
+
+As demonstrated in Figure~\ref{fig:dependency-graph-examples}, we can see that
+the graph size for bytecode is larger than that of statements.  This can be
+improved by \solution{running a static analysis to compress the graph}.
+
+\input{figures/dependency-graph-example}
+
+Now we rewrite the program a little bit:
+
+\begin{lstlisting}[title={Example 2}, label=code:example-2]
+public void run(X, Y, Z) {
+	int a = datastore.read(X);
+	int b = datastore.read(Y);
+
+	int c = a + b + 1;
+	datastore.write(Z, c);
+}
+\end{lstlisting}
+
+\paragraph{Identify VXE API and introduce the data label}\hfill
+
+For oridinary programs we will see a dependency graph with \emph{a} dependening on
+both \emph{datastore} and \emph{X}.  But in VXE, \emph{a} only depends on
+\emph{X} but the node representing \emph{a} will be marked with a tuple (\emph{key,
+version}) which designates the value that is read from the datastore.  The value
+of the \emph{key} in this tuple will be replaced with the exact value of
+\emph{X} at runtime.  If we execute the method with parameters $X_0, Y_0, Z_0$,
+the dependency graph in Figure~\ref{fig:dependency-graph-example-for-vxe-a} can be
+obtained.
+
+\input{figures/dependency-graph-example-for-vxe}
+
+Basically the graph can be interpreted as ``the value of data at $Z_0$, whose
+version is $v_{\text{new}}$, depends on the data at $X_0$ and $Y_0$, and the
+corresponding versions are $v_0$ and $v_1$'', and we can futher compress it to
+Figure~\ref{fig:dependency-graph-example-for-vxe-b}.
+
+\begin{lstlisting}[]
+public void run(X, Y, Z) {
+	int a = datastore.read(X);
+	int b = Y;
+
+	int c = a + b + 1;
+	datastore.write(Z, c);
+}
+\end{lstlisting}
+
+For ordinary programs these two programs should have similar data dependency
+graphs except that $b$ also depends on \emph{datastore} in the former.  In VXE,
+however, they are quite different.
+
+\challenge{For the label system to identify the VXE datastore API and get the
+correct version of the },
+
+\paragraph
+
+\end{document}

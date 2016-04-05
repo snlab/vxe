@@ -1,0 +1,46 @@
+\begin{figure}[htb]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}[node distance=2cm]
+			\node[state] (X0) {$X_0$};
+			\node[state] (Y0) [right of=X0] {$Y_0$};
+			\node[state] (Z0) [right of=Y0] {$Z_0$};
+			\node[state] (alabel) [below of=X0, color=red] {$(X_0, v_0)$};
+			\node[state] (blabel) [below of=Y0, color=red] {$(Y_0, v_1)$};
+			\node[state] (a) [below of=alabel, color=red] {$a$};
+			\node[state] (b) [below of=blabel, color=red] {$b$};
+			\node[state] (c) [below of=a, color=red, xshift=1cm, yshift=1cm] {$c$};
+			\node[state] (clabel) [below of=c, color=red, xshift=1cm] {$(Z_0,
+			v_{\text{new}})$};
+
+			\path[<-]
+			(X0) edge (alabel)
+			(Y0) edge (blabel)
+			(alabel) edge (a)
+			(blabel) edge (b)
+			(a) edge (c)
+			(b) edge (c)
+			(c) edge (clabel)
+			(Z0) edge (clabel);
+		\end{tikzpicture}
+		\caption{Example of a complete dependency graph for VXE}
+		\label{fig:dependency-grpah-example-for-vxe-a}
+	\end{subfigure}
+	\quad
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}[node distance=2cm]
+			\node[state] (alabel) [color=red] {$(X_0, v_0)$};
+			\node[state] (blabel) [right of=alabel, color=red] {$(Y_0, v_1)$};
+			\node[state] (clabel) [below of=alabel, color=red, xshift=1cm] {$(Z_0,
+			v_{\text{new}})$};
+
+			\path[<-]
+			(alabel) edge (clabel)
+			(blabel) edge (clabel);
+		\end{tikzpicture}
+		\caption{Example of a compressed dependency graph for VXE}
+		\label{fig:dependency-grpah-example-for-vxe-b}
+	\end{subfigure}
+\end{figure}
