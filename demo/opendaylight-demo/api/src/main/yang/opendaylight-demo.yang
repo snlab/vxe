@@ -1,0 +1,28 @@
+module vxe-opendaylight-demo {
+    yang-version 1;
+
+    namespace "urn:vxe:demo:opendaylight";
+
+    prefix "vxe-opendaylight-demo";
+
+    import ietf-yang-types {
+        prefix yang; revision-date "2010-09-24";
+    }
+
+    revision "2016-04-08" {
+        description "Initial revision of opendaylight-demo model";
+    }
+
+    rpc setup-path {
+        input {
+            leaf "source" {
+                type yang:mac-address;
+            }
+
+            leaf "destination" {
+                type yang:mac-address;
+            }
+        }
+
+    }
+}

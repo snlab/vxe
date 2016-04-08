@@ -36,5 +36,6 @@
   <modules>
     <module>demo-app</module>
     <module>demo-datastore</module>
+    <module>opendaylight-demo</module>
   </modules>
 </project>
