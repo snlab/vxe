@@ -15,6 +15,8 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   <repository>mvn:org.opendaylight.mdsal.model/features-mdsal-model/{{VERSION}}/xml/features</repository>
   <repository>mvn:org.opendaylight.netconf/features-restconf/{{VERSION}}/xml/features</repository>
   <repository>mvn:org.opendaylight.dlux/features-dlux/{{VERSION}}/xml/features</repository>
+  <repository>mvn:org.opendaylight.openflowplugin/features-openflowplugin/{{VERSION}}/xml/features</repository>
+
   <feature name='odl-vxe-demo-api' version='${project.version}' description='OpenDaylight :: vxe-demo :: api'>
     <feature version='${mdsal.model.version}'>odl-mdsal-models</feature>
     <bundle>mvn:org.snlab.vxe/opendaylight-demo-api/{{VERSION}}</bundle>
@@ -22,6 +24,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
 
   <feature name='odl-vxe-demo' version='${project.version}' description='OpenDaylight :: vxe-demo'>
     <feature version='${mdsal.version}'>odl-mdsal-broker</feature>
+    <feature version='${openflowplugin.version}'>odl-openflowplugin-all</feature>
     <feature version='${project.version}'>odl-vxe-demo-api</feature>
     <bundle>mvn:org.snlab.vxe/opendaylight-demo-impl/{{VERSION}}</bundle>
     <configfile finalname="${configfile.directory}/opendaylight-demo.xml">
