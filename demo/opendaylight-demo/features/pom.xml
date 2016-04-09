@@ -28,6 +28,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <yangtools.version>0.8.0-Beryllium</yangtools.version>
     <dlux.version>0.3.0-Beryllium</dlux.version>
     <openflowplugin.version>0.2.0-Beryllium</openflowplugin.version>
+    <l2switch.version>0.3.0-Beryllium</l2switch.version>
     <configfile.directory>etc/opendaylight/karaf</configfile.directory>
   </properties>
   <dependencyManagement>
@@ -61,6 +62,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.opendaylight.l2switch</groupId>
+        <artifactId>l2switch-artifacts</artifactId>
+        <version>${l2switch.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -74,6 +82,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <dependency>
       <groupId>org.opendaylight.openflowplugin</groupId>
       <artifactId>features-openflowplugin</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch</groupId>
+      <artifactId>features-l2switch</artifactId>
       <classifier>features</classifier>
       <type>xml</type>
       <scope>runtime</scope>
@@ -116,6 +131,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>opendaylight-demo-impl</artifactId>
+      <version>${project.version}</version>
+      <type>xml</type>
+      <classifier>config</classifier>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>network-tracker-config</artifactId>
       <version>${project.version}</version>
       <type>xml</type>
       <classifier>config</classifier>
