@@ -7,6 +7,7 @@
  */
 package org.snlab.vxe.demo.opendaylight.impl;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
@@ -34,6 +35,7 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
         LOG.info("VxeOpenDaylightDemoProvider Session Initiated");
 
         broker = session.getSALService(DataBroker.class);
+        session.addRpcImplementation(VxeOpendaylightDemoService.class, this);
 
         initializeVxeOpenDaylight(broker);
     }
@@ -55,6 +57,11 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
         VxeDemoTasklet tasklet = new VxeDemoTasklet();
 
         tasklet.findPath(input.getSource(), input.getDestination(), vxeDatastore);
+
+        try {
+            rwt.submit().get();
+        } catch (InterruptedException | ExecutionException e) {
+        }
         return Futures.immediateFuture(RpcResultBuilder.<Void>success().build());
     }
 

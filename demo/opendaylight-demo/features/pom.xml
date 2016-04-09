@@ -29,7 +29,10 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
     <dlux.version>0.3.0-Beryllium</dlux.version>
     <openflowplugin.version>0.2.0-Beryllium</openflowplugin.version>
     <l2switch.version>0.3.0-Beryllium</l2switch.version>
-    <configfile.directory>etc/opendaylight/karaf</configfile.directory>
+    <config.packethandler.configfile>50-packethandler.xml</config.packethandler.configfile>
+    <config.loopremover.configfile>52-loopremover.xml</config.loopremover.configfile>
+    <config.addresstracker.configfile>56-addresstracker.xml</config.addresstracker.configfile>
+    <config.hosttracker.configfile>57-hosttracker.xml</config.hosttracker.configfile><configfile.directory>etc/opendaylight/karaf</configfile.directory>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -146,6 +149,34 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
       <groupId>${project.groupId}</groupId>
       <artifactId>opendaylight-demo-api</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.hosttracker</groupId>
+      <artifactId>hosttracker-config</artifactId>
+      <version>${l2switch.version}</version>
+      <type>xml</type>
+      <classifier>config</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.loopremover</groupId>
+      <artifactId>loopremover-config</artifactId>
+      <version>${l2switch.version}</version>
+      <type>xml</type>
+      <classifier>config</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.addresstracker</groupId>
+      <artifactId>addresstracker-config</artifactId>
+      <version>${l2switch.version}</version>
+      <type>xml</type>
+      <classifier>config</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.l2switch.packethandler</groupId>
+      <artifactId>packethandler-config</artifactId>
+      <version>${l2switch.version}</version>
+      <type>xml</type>
+      <classifier>config</classifier>
     </dependency>
   </dependencies>
 </project>

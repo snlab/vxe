@@ -11,6 +11,7 @@ yang-gen-*
 *.classpath
 *.project
 *.xmi
+.settings
 workspace
 
 # build files
