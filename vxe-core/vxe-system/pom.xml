@@ -6,6 +6,7 @@
     <groupId>org.snlab.vxe</groupId>
     <artifactId>vxe-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../vxe-parent</relativePath>
   </parent>
 
   <artifactId>vxe-system</artifactId>
