@@ -68,6 +68,7 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
             try {
                 main.invoke(instance, parameters.toArray());
             } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
             }
 
             try {
@@ -152,8 +153,6 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
 
             Method main = null;
             for (Method method: taskletType.getMethods()) {
-                LOG.info("Method {} has annotation {}? {}",
-                            method, VxeEntryPoint.class, method.isAnnotationPresent(VxeEntryPoint.class));
                 if (method.isAnnotationPresent(VxeEntryPoint.class)) {
                     if (main != null) {
                         // TODO: error - too many entry points
