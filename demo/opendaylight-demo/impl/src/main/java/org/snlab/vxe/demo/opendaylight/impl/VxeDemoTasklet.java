@@ -62,7 +62,6 @@ import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NetworkTopology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NodeId;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.TopologyId;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.TpId;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.Topology;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.TopologyKey;
 import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Link;
@@ -71,9 +70,9 @@ import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.snlab.vxe.api.Datastore;
 import org.snlab.vxe.api.Identifier;
-import org.snlab.vxe.api.VxeDatastore;
-import org.snlab.vxe.api.VxeEntryPoint;
-import org.snlab.vxe.api.VxeTasklet;
+import org.snlab.vxe.api.annotation.VxeDatastore;
+import org.snlab.vxe.api.annotation.VxeEntryPoint;
+import org.snlab.vxe.api.annotation.VxeTasklet;
 
 import com.google.common.collect.ImmutableList;
 
@@ -102,7 +101,6 @@ public class VxeDemoTasklet {
     @VxeEntryPoint
     public void findPath(MacAddress source, MacAddress destination,
                             @VxeDatastore Datastore datastore) {
-
         this.datastore = datastore;
 
         Node src = getAttachmentPoint(source);

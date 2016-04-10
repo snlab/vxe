@@ -7,11 +7,9 @@
  */
 package org.snlab.vxe.demo.opendaylight.impl;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
 import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.ProviderContext;
 import org.opendaylight.controller.sal.binding.api.BindingAwareProvider;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.service.rev130819.AddFlowInput;
@@ -27,7 +25,9 @@ import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.opendaylight.yangtools.yang.common.RpcResultBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylightDatastore.OpenDaylightRpc;
+import org.snlab.vxe.api.Tasklet;
+import org.snlab.vxe.api.TaskletFactory;
+import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylight.OpenDaylightRpc;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
@@ -39,6 +39,9 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
 
     private DataBroker broker = null;
     private SalFlowService openflow = null;
+    private VxeOpenDaylight vxe = null;
+
+    private TaskletFactory<VxeDemoTasklet> factory;
 
     @Override
     public void onSessionInitiated(ProviderContext session) {
@@ -56,6 +59,10 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
     }
 
     private void initializeVxeOpenDaylight(DataBroker broker) {
+        vxe = new VxeOpenDaylight(broker);
+        vxe.registerRpc(AddFlowInput.class, new SalFlowOpenDaylightRpc());
+
+        factory = vxe.register(VxeDemoTasklet.class);
     }
 
     @Override
@@ -63,7 +70,8 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
         LOG.info("VxeOpenDaylightDemoProvider Closed");
     }
 
-    private class SalFlowOpenDaylightRpc implements OpenDaylightRpc<AddFlowInput, AddFlowOutput> {
+    private class SalFlowOpenDaylightRpc
+                    implements OpenDaylightRpc<AddFlowInput, AddFlowOutput> {
         @Override
         public Future<RpcResult<AddFlowOutput>> process(AddFlowInput input) {
             return openflow.addFlow(input);
@@ -71,6 +79,7 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
 
         @Override
         public Future<RpcResult<Void>> clear(AddFlowInput input) {
+            // Clear the side-effects of the RPC
             RemoveFlowInput removeInput = new RemoveFlowInputBuilder((NodeFlow) input)
                 .setTransactionUri(input.getTransactionUri())
                 .setFlowRef(input.getFlowRef()).build();
@@ -90,19 +99,10 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
 
     @Override
     public Future<RpcResult<Void>> setupPath(SetupPathInput input) {
-        VxeOpenDaylightDatastore datastore = new VxeOpenDaylightDatastore(broker);
-        datastore.registerRpc(AddFlowInput.class, new SalFlowOpenDaylightRpc());
-        VxeDemoTasklet tasklet = new VxeDemoTasklet();
 
-        tasklet.findPath(input.getSource(), input.getDestination(), datastore);
+        Tasklet<VxeDemoTasklet> tasklet = factory.create(input.getSource(), input.getDestination());
+        tasklet.submit();
 
-        try {
-            ReadWriteTransaction rwt = datastore.getTx();
-            if (rwt != null) {
-                rwt.submit().get();
-            }
-        } catch (InterruptedException | ExecutionException e) {
-        }
         return Futures.immediateFuture(RpcResultBuilder.<Void> success().build());
     }
 

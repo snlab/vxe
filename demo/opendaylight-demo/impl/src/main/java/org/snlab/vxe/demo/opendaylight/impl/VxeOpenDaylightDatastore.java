@@ -7,10 +7,7 @@
  */
 package org.snlab.vxe.demo.opendaylight.impl;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
@@ -18,38 +15,25 @@ import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
-import org.snlab.vxe.api.Datastore;
-import org.snlab.vxe.api.Identifier;
-
-import com.google.common.base.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.snlab.vxe.api.Datastore;
+import org.snlab.vxe.api.Identifier;
+import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylight.OpenDaylightRpc;
+
+import com.google.common.base.Optional;
 
 public class VxeOpenDaylightDatastore implements Datastore {
 
     private static final Logger LOG = LoggerFactory.getLogger(VxeOpenDaylightDatastore.class);
 
-    public static interface OpenDaylightRpc<I extends DataObject, O extends DataObject> {
-
-        public Future<RpcResult<O>> process(I input);
-
-        public Future<RpcResult<Void>> clear(I input);
-
-    }
-
-    private Map<Class<?>, OpenDaylightRpc<?, ?>> rpcMap;
-
     private DataBroker broker = null;
     private ReadWriteTransaction rwt = null;
+    private VxeOpenDaylight context = null;
 
-    public VxeOpenDaylightDatastore(DataBroker broker) {
+    public VxeOpenDaylightDatastore(DataBroker broker, VxeOpenDaylight context) {
         this.broker = broker;
-        this.rpcMap = new HashMap<Class<?>, OpenDaylightRpc<?, ?>>();
-    }
-
-    public <I extends DataObject> void registerRpc(Class<I> input, OpenDaylightRpc<I, ?> rpc) {
-        rpcMap.put(input, rpc);
+        this.context = context;
     }
 
     @Override
@@ -82,15 +66,7 @@ public class VxeOpenDaylightDatastore implements Datastore {
     @SuppressWarnings("unchecked")
     private <I extends DataObject, O extends DataObject> O readRpc(VxeOpenDaylightRpc<I, O> id) {
         DataObject input = id.getInput();
-        OpenDaylightRpc<?, ?> rpc = null;
-
-        for (Class<?> clazz: input.getClass().getInterfaces()) {
-            rpc = rpcMap.get(clazz);
-            if (rpc != null) {
-                LOG.info("Found RPC for {}", clazz);
-                break;
-            }
-        }
+        OpenDaylightRpc<?, ?> rpc = context.getRpc(input);
 
         if (rpc == null) {
             LOG.warn("Failed to find RPC instance!");

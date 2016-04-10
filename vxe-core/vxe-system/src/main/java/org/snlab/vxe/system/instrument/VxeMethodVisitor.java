@@ -6,7 +6,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import org.snlab.vxe.api.VxeEntryPoint;
+import org.snlab.vxe.api.annotation.VxeEntryPoint;
 
 public class VxeMethodVisitor extends MethodVisitor {
 
