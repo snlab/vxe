@@ -8,20 +8,29 @@
 package org.snlab.vxe.demo.opendaylight.impl;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
+import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
 import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
 import org.opendaylight.controller.md.sal.binding.impl.BindingToNormalizedNodeCodec;
+import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker.DataChangeScope;
+import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeEvent;
+import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.DataObject;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,23 +48,118 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
 
     private class VxeOpenDaylightTasklet<T> implements Tasklet<T> {
 
+        private Class<?> clazz = null;
         private Method main = null;
         private Object instance = null;
         private Object[] parameters = null;
         private Annotation[] vxeParameterTypes = null;
 
-        public VxeOpenDaylightTasklet(Method main, Object instance,
+        private boolean successful = true;
+        private boolean finished = false;
+        private final Lock lock = new ReentrantLock();
+
+        private List<AutoCloseable> registrations = new LinkedList<>();
+        private VxeOpenDaylightDatastore datastore = null;
+        private UUID version = UUID.randomUUID();
+
+        public VxeOpenDaylightTasklet(Class<?> clazz, Method main, Object instance,
                                         Object[] parameters,
                                         Annotation[] vxeParameterTypes) {
+            this.clazz = clazz;
             this.main = main;
             this.instance = instance;
             this.parameters = parameters;
             this.vxeParameterTypes = vxeParameterTypes;
         }
 
+        private class VxeDataChangeListener implements DataChangeListener {
+
+            protected static final long GRACEFUL_PERIOD_TIME = 2000; // 2s
+            private UUID timestamp = UUID.fromString(version.toString());
+
+            @Override
+            public void onDataChanged(
+                final AsyncDataChangeEvent<InstanceIdentifier<?>, DataObject> event) {
+
+                List<InstanceIdentifier<?>> modified = new LinkedList<>();
+
+                modified.addAll(event.getCreatedData().keySet());
+                modified.addAll(event.getUpdatedData().keySet());
+                modified.addAll(event.getRemovedPaths());
+
+                LOG.info("Event: {}", event);
+                for (InstanceIdentifier<?> iid: modified) {
+                    LOG.info("Got data change: {}", iid);
+                }
+                if ((modified.size() > 1) && (event.getCreatedData().size() == 0)) {
+                    //List: only listen to created data
+                    return;
+                }
+                DataObject original = event.getOriginalSubtree();
+                DataObject updated = event.getUpdatedSubtree();
+                if (Objects.equals(original, updated)) {
+                    return;
+                }
+
+                lock.lock();
+                if (!timestamp.equals(version)) {
+                    lock.unlock();
+                    return ;
+                }
+                version = UUID.randomUUID();
+
+                if (finished == false) {
+                    lock.unlock();
+                    return;
+                }
+                finished = false;
+                lock.unlock();
+
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(GRACEFUL_PERIOD_TIME);
+
+                            lock.lock();
+                            rollback();
+                            instance = clazz.newInstance();
+                            execute();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            lock.unlock();
+                        }
+                    }
+                });
+                thread.start();
+            }
+        }
+
         @Override
         public void submit() {
-            VxeOpenDaylightDatastore datastore = null;
+            lock.lock();
+            try {
+                execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private void execute() {
+            if (finished == true) {
+                return;
+            }
+            datastore = null;
+            for (AutoCloseable reg: registrations) {
+                try {
+                    reg.close();
+                } catch (Exception e) {
+                }
+            }
+            registrations.clear();
 
             List<Object> parameters = new LinkedList<>(Arrays.asList(this.parameters));
             for (Annotation annotation: vxeParameterTypes) {
@@ -67,32 +171,118 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
                 }
             }
 
+            successful = true;
+
             try {
                 main.invoke(instance, parameters.toArray());
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Exception e) {
+                e.printStackTrace();
+                successful = false;
+            }
+
+            finished = true;
+
+            if (datastore != null) {
+                for (Identifier<?> id: datastore.getReadData()) {
+                    VxeOpenDaylightIdentifier<?> vid;
+                    vid = (VxeOpenDaylightIdentifier<?>) id;
+
+                    LOG.info("Read {}", vid.getInstanceIdentifier());
+                }
+            }
+
+            ReadWriteTransaction rwt = (datastore == null ? null : datastore.getTx());
+            if (rwt != null) {
+                if (successful) {
+                    try {
+                        rwt.submit().get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                        successful = false;
+                    }
+                } else {
+                    rwt.cancel();
+                }
+                rwt = null;
+            }
+
+            if (successful) {
+                for (Identifier<?> id: datastore.getReadData()) {
+                    VxeOpenDaylightIdentifier<?> vid;
+                    vid = (VxeOpenDaylightIdentifier<?>) id;
+
+                    LogicalDatastoreType type = vid.getType();
+                    InstanceIdentifier<?> iid = vid.getInstanceIdentifier();
+                    DataChangeScope scope = DataChangeScope.BASE;
+                    if (iid.isWildcarded()) {
+                        scope = DataChangeScope.ONE;
+                    }
+
+                    ListenerRegistration<DataChangeListener> reg;
+                    VxeDataChangeListener vxeListener = new VxeDataChangeListener();
+                    reg = broker.registerDataChangeListener(type, iid,
+                                                            vxeListener, scope);
+
+                    registrations.add(reg);
+                }
+            }
+        }
+
+        private void rollback() {
+            finished = false;
+            for (AutoCloseable reg: registrations) {
+                try {
+                    reg.close();
+                } catch (Exception e) {
+                }
+            }
+            registrations.clear();
+
+            try {
+                if (datastore != null) {
+                    List<Identifier<?>> rpcData = datastore.getRpcData();
+                    if (rpcData == null) {
+                        return;
+                    }
+
+                    LinkedList<Identifier<?>> reversed = new LinkedList<>();
+                    for (Identifier<?> id: rpcData) {
+                        reversed.addFirst(id);
+                    }
+
+                    for (Identifier<?> id: reversed) {
+                        VxeOpenDaylightRpc<?, ?> rpcId = (VxeOpenDaylightRpc<?, ?>) id;
+                        OpenDaylightRpc<?,?> rpc = getRpc(rpcId.getInput());
+
+                        if (rpc != null) {
+                            forceClear(rpc, rpcId.getInput());
+                        }
+                    }
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            for (Identifier<?> id: datastore.getReadData()) {
-                VxeOpenDaylightIdentifier<?> vid = (VxeOpenDaylightIdentifier<?>) id;
-                LOG.info("Read {}", vid.getInstanceIdentifier());
-            }
+            datastore = null;
+        }
 
-            try {
-                ReadWriteTransaction rwt = datastore.getTx();
-                if (rwt != null) {
-                    rwt.submit().get();
-                }
-            } catch (InterruptedException | ExecutionException e) {
-            }
+        @SuppressWarnings("unchecked")
+        private <I extends DataObject> void forceClear(OpenDaylightRpc<I, ?> rpc,
+                                                        DataObject input) {
+            rpc.clear((I) input);
         }
 
         @Override
         public void cancel() {
-            // TODO Auto-generated method stub
-
+            lock.lock();
+            try {
+                rollback();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
         }
-
     }
 
     private class VxeOpenDaylightTaskletFactory<T> implements TaskletFactory<T> {
@@ -118,18 +308,26 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
             }
             try {
                 Object instance = clazz.newInstance();
-                return new VxeOpenDaylightTasklet<T>(main, instance,
-                                                        parameters,
-                                                        vxeParameterTypes);
+                return new VxeOpenDaylightTasklet<T>(clazz, main, instance,
+                                                        parameters, vxeParameterTypes);
             } catch (InstantiationException | IllegalAccessException e) {
                 return null;
             }
         }
     }
 
-    private DataBroker broker;
-    private Map<Class<?>, TaskletFactory<?>> factoryMap = null;
+    public static interface OpenDaylightRpc<I extends DataObject, O extends DataObject> {
+
+        public Future<RpcResult<O>> process(I input);
+
+        public Future<RpcResult<Void>> clear(I input);
+
+    }
+
     private BindingToNormalizedNodeCodec codec = null;
+    private DataBroker broker;
+    private Map<Class<?>, OpenDaylightRpc<?, ?>> rpcMap = null;
+    private Map<Class<?>, TaskletFactory<?>> factoryMap = null;
 
     public VxeOpenDaylight(DataBroker broker, BindingToNormalizedNodeCodec codec) {
         this.broker = broker;
@@ -208,16 +406,6 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
         }
         return (TaskletFactory<T>) factory;
     }
-
-    public static interface OpenDaylightRpc<I extends DataObject, O extends DataObject> {
-
-        public Future<RpcResult<O>> process(I input);
-
-        public Future<RpcResult<Void>> clear(I input);
-
-    }
-
-    private Map<Class<?>, OpenDaylightRpc<?, ?>> rpcMap = null;
 
     public <I extends DataObject> void registerRpc(Class<I> input, OpenDaylightRpc<I, ?> rpc) {
         rpcMap.put(input, rpc);

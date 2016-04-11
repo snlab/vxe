@@ -5,13 +5,14 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-package org.snlab.vxe.demo.opendaylight.impl;
+package org.snlab.vxe.demo.opendaylight.impl.application;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.Uri;
@@ -73,6 +74,8 @@ import org.snlab.vxe.api.Identifier;
 import org.snlab.vxe.api.annotation.VxeDatastore;
 import org.snlab.vxe.api.annotation.VxeEntryPoint;
 import org.snlab.vxe.api.annotation.VxeTasklet;
+import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylightIdentifier;
+import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylightRpc;
 
 import com.google.common.collect.ImmutableList;
 
@@ -116,18 +119,19 @@ public class VxeDemoTasklet {
     private void setupPath(MacAddress source, MacAddress destination,
                             List<Link> path) {
         int counter = 0;
+        System.out.println("\nSetting up paths:");
+
         for (Link link: path) {
-            System.out.println("Setting up path for "
-                                + "<" + source.getValue() + ","
-                                + destination.getValue() + ">"
-                                + "on switch "
-                                + link.getSource().getSourceNode().getValue());
-
-
             if (counter > 0) {
                 // Not the first link, set up src -> dst
                 String swid = link.getSource().getSourceNode().getValue();
                 String tpid = link.getSource().getSourceTp().getValue();
+
+                System.out.println("Setting up path for "
+                                    + "<" + source.getValue() + ","
+                                    + destination.getValue() + ">"
+                                    + "on switch "
+                                    + link.getSource().getSourceNode().getValue());
 
                 NodeConnectorRef ref = getNodeConnectorRef(swid, tpid);
                 setupSwitch(source, destination, ref, tpid);
@@ -137,6 +141,12 @@ public class VxeDemoTasklet {
                 // Not the last link, set up dst -> src
                 String swid = link.getDestination().getDestNode().getValue();
                 String tpid = link.getDestination().getDestTp().getValue();
+
+                System.out.println("Setting up path for "
+                                    + "<" + destination.getValue() + ","
+                                    + source.getValue() + ">"
+                                    + "on switch "
+                                    + link.getDestination().getDestNode().getValue());
 
                 NodeConnectorRef ref = getNodeConnectorRef(swid, tpid);
                 setupSwitch(destination, source, ref, tpid);
@@ -148,7 +158,7 @@ public class VxeDemoTasklet {
     private void setupSwitch(MacAddress source, MacAddress destination,
                                 NodeConnectorRef connector, String tpid) {
         TableKey tableKey = new TableKey((short) DEFAULT_TABLE_ID);
-        FlowId flowId = new FlowId(Long.toString(Objects.hash(source, destination)));
+        FlowId flowId = new FlowId(UUID.randomUUID().toString());
         FlowKey flowKey = new FlowKey(flowId);
 
         InstanceIdentifier<NodeConnector> iid;

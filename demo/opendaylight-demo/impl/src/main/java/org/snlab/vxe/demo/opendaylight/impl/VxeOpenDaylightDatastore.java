@@ -8,6 +8,8 @@
 package org.snlab.vxe.demo.opendaylight.impl;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -17,10 +19,8 @@ import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.opendaylight.yangtools.yang.common.RpcResult;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.snlab.vxe.api.Datastore;
 import org.snlab.vxe.api.Identifier;
 import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylight.OpenDaylightRpc;
@@ -39,6 +39,7 @@ public class VxeOpenDaylightDatastore implements Datastore {
 
     private Set<Identifier<?>> readData = new HashSet<>();
     private Set<Identifier<?>> writeData = new HashSet<>();
+    private List<Identifier<?>> rpcData = new LinkedList<>();
 
     public VxeOpenDaylightDatastore(DataBroker broker, VxeOpenDaylight context) {
         this.broker = broker;
@@ -85,30 +86,31 @@ public class VxeOpenDaylightDatastore implements Datastore {
         DataObject input = id.getInput();
         OpenDaylightRpc<?, ?> rpc = context.getRpc(input);
 
-        writeData.add(id);
-
         if (rpc == null) {
             LOG.warn("Failed to find RPC instance!");
             return null;
         }
         try {
-            rwt.submit().get();
-            rwt = null;
+            if (rwt != null) {
+                rwt.submit().get();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return (O) forceExecute(rpc, input);
+        rwt = null;
+
+        return (O) forceExecute(rpc, input, id);
     }
 
     @SuppressWarnings("unchecked")
-    private <O extends DataObject, I extends DataObject> O forceExecute(OpenDaylightRpc<I, O> rpc, DataObject input) {
-        if (rwt == null) {
-            rwt = broker.newReadWriteTransaction();
-        }
+    private <I extends DataObject> Object forceExecute(OpenDaylightRpc<I, ?> rpc,
+                                                        DataObject input,
+                                                        Identifier<?> id) {
         try {
-            RpcResult<O> result = rpc.process((I) input).get();
+            RpcResult<?> result = rpc.process((I) input).get();
             if (result.isSuccessful()) {
-                return (O) result.getResult();
+                rpcData.add(id);
+                return result.getResult();
             } else {
                 for (Object error: result.getErrors()) {
                     LOG.warn("Rpc error: {}", error);
@@ -134,6 +136,9 @@ public class VxeOpenDaylightDatastore implements Datastore {
     private <T extends DataObject> void forceWrite(LogicalDatastoreType type,
                                                     InstanceIdentifier<T> iid,
                                                     Object value) {
+        if (rwt == null) {
+            rwt = broker.newReadWriteTransaction();
+        }
         rwt.put(type, iid, (T) value, true);
     }
 
@@ -147,5 +152,9 @@ public class VxeOpenDaylightDatastore implements Datastore {
 
     public Set<Identifier<?>> getWriteData() {
         return writeData;
+    }
+
+    public List<Identifier<?>> getRpcData() {
+        return rpcData;
     }
 }
