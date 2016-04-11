@@ -15,6 +15,11 @@ yang-gen-*
 .settings
 workspace
 
+# IDEA
+*.iml
+*.ipr
+*.iws
+
 # build files
 *.class
 target
