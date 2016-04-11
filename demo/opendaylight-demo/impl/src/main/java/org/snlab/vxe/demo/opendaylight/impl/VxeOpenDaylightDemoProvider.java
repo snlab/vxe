@@ -10,6 +10,7 @@ package org.snlab.vxe.demo.opendaylight.impl;
 import java.util.concurrent.Future;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
+import org.opendaylight.controller.md.sal.binding.impl.BindingToNormalizedNodeCodec;
 import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.ProviderContext;
 import org.opendaylight.controller.sal.binding.api.BindingAwareProvider;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.flow.service.rev130819.AddFlowInput;
@@ -42,6 +43,11 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
     private VxeOpenDaylight vxe = null;
 
     private TaskletFactory<VxeDemoTasklet> factory;
+    private BindingToNormalizedNodeCodec codec = null;
+
+    public VxeOpenDaylightDemoProvider(BindingToNormalizedNodeCodec codec) {
+        this.codec = codec;
+    }
 
     @Override
     public void onSessionInitiated(ProviderContext session) {
@@ -50,16 +56,16 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
         broker = session.getSALService(DataBroker.class);
         openflow = session.getRpcService(SalFlowService.class);
 
-        if ((broker == null) || (openflow == null)) {
+        if ((broker == null) || (openflow == null) || (codec == null)) {
             LOG.error("Missing dependencies!");
         }
         session.addRpcImplementation(VxeOpendaylightDemoService.class, this);
 
-        initializeVxeOpenDaylight(broker);
+        initializeVxeOpenDaylight();
     }
 
-    private void initializeVxeOpenDaylight(DataBroker broker) {
-        vxe = new VxeOpenDaylight(broker);
+    private void initializeVxeOpenDaylight() {
+        vxe = new VxeOpenDaylight(broker, codec);
         vxe.registerRpc(AddFlowInput.class, new SalFlowOpenDaylightRpc());
 
         factory = vxe.register(VxeDemoTasklet.class);

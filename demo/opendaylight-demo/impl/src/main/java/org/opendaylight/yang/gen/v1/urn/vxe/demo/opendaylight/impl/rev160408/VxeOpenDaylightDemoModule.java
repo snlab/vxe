@@ -18,7 +18,8 @@ public class VxeOpenDaylightDemoModule extends org.opendaylight.yang.gen.v1.urn.
 
     @Override
     public java.lang.AutoCloseable createInstance() {
-        VxeOpenDaylightDemoProvider provider = new VxeOpenDaylightDemoProvider();
+        VxeOpenDaylightDemoProvider provider;
+        provider = new VxeOpenDaylightDemoProvider(getBindingMappingServiceDependency());
         getBrokerDependency().registerProvider(provider);
 
         return provider;

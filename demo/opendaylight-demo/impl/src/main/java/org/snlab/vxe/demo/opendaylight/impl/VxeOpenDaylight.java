@@ -20,10 +20,12 @@ import java.util.concurrent.Future;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.ReadWriteTransaction;
+import org.opendaylight.controller.md.sal.binding.impl.BindingToNormalizedNodeCodec;
 import org.opendaylight.yangtools.yang.binding.DataObject;
 import org.opendaylight.yangtools.yang.common.RpcResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.snlab.vxe.api.Identifier;
 import org.snlab.vxe.api.Tasklet;
 import org.snlab.vxe.api.TaskletFactory;
 import org.snlab.vxe.api.VirtualExecutionEnvironment;
@@ -69,6 +71,11 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
                 main.invoke(instance, parameters.toArray());
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
+            }
+
+            for (Identifier<?> id: datastore.getReadData()) {
+                VxeOpenDaylightIdentifier<?> vid = (VxeOpenDaylightIdentifier<?>) id;
+                LOG.info("Read {}", vid.getInstanceIdentifier());
             }
 
             try {
@@ -122,9 +129,11 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
 
     private DataBroker broker;
     private Map<Class<?>, TaskletFactory<?>> factoryMap = null;
+    private BindingToNormalizedNodeCodec codec = null;
 
-    public VxeOpenDaylight(DataBroker broker) {
+    public VxeOpenDaylight(DataBroker broker, BindingToNormalizedNodeCodec codec) {
         this.broker = broker;
+        this.codec = codec;
 
         this.factoryMap = new HashMap<Class<?>, TaskletFactory<?>>();
         this.rpcMap = new HashMap<Class<?>, OpenDaylightRpc<?, ?>>();
@@ -225,5 +234,9 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
         }
 
         return rpc;
+    }
+
+    public BindingToNormalizedNodeCodec getCodec() {
+        return codec;
     }
 }

@@ -43,7 +43,7 @@ public class VxeOpenDaylightDatastore implements Datastore {
     public VxeOpenDaylightDatastore(DataBroker broker, VxeOpenDaylight context) {
         this.broker = broker;
         this.context = context;
-        this.agent = new ObjectProxyAgent(readData, writeData);
+        this.agent = new ObjectProxyAgent(context.getCodec(), readData, writeData);
     }
 
     @Override
@@ -67,6 +67,7 @@ public class VxeOpenDaylightDatastore implements Datastore {
                     return null;
                 }
             } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
                 return null;
             }
         } else if (id instanceof VxeOpenDaylightRpc) {
@@ -94,7 +95,7 @@ public class VxeOpenDaylightDatastore implements Datastore {
             rwt.submit().get();
             rwt = null;
         } catch (Exception e) {
-            LOG.warn(e.getMessage());
+            e.printStackTrace();
         }
         return (O) forceExecute(rpc, input);
     }
@@ -138,5 +139,13 @@ public class VxeOpenDaylightDatastore implements Datastore {
 
     public ReadWriteTransaction getTx() {
         return rwt;
+    }
+
+    public Set<Identifier<?>> getReadData() {
+        return readData;
+    }
+
+    public Set<Identifier<?>> getWriteData() {
+        return writeData;
     }
 }

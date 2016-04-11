@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- vi: set et smarttab sw=4 tabstop=4: -->
 <!--
 Copyright © 2016 SNLAB and others. All rights reserved.
 
@@ -11,6 +10,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
   <required-capabilities>
       <capability>urn:vxe:demo:opendaylight:impl?module=vxe-opendaylight-demo-impl&amp;revision=2016-04-08</capability>
       <capability>urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding?module=opendaylight-md-sal-binding&amp;revision=2013-10-28</capability>
+        <capability>urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding:impl?module=opendaylight-sal-binding-broker-impl&amp;revision=2013-10-28</capability>
   </required-capabilities>
   <configuration>
 
@@ -23,6 +23,12 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <type xmlns:binding="urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding">binding:binding-broker-osgi-registry</type>
             <name>binding-osgi-broker</name>
           </broker>
+          <binding-mapping-service>
+            <type xmlns:binding="urn:opendaylight:params:xml:ns:yang:controller:md:sal:binding:impl">
+              binding:binding-dom-mapping-service
+            </type>
+            <name>runtime-mapping-singleton</name>
+          </binding-mapping-service>
         </module>
       </modules>
     </data>

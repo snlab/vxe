@@ -7,14 +7,17 @@
  */
 package org.snlab.vxe.demo.opendaylight.impl.proxy;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
-import org.opendaylight.yangtools.yang.binding.Augmentation;
+import org.opendaylight.controller.md.sal.binding.impl.BindingToNormalizedNodeCodec;
 import org.opendaylight.yangtools.yang.binding.DataObject;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snlab.vxe.api.Identifier;
@@ -26,8 +29,11 @@ public final class ObjectProxyAgent {
 
     private Set<Identifier<?>> readData;
     private Set<Identifier<?>> writeData;
+    private InstanceIdentifierGenerator generator;
 
-    public ObjectProxyAgent(Set<Identifier<?>> readData, Set<Identifier<?>> writeData) {
+    public ObjectProxyAgent(BindingToNormalizedNodeCodec codec,
+                            Set<Identifier<?>> readData, Set<Identifier<?>> writeData) {
+        this.generator = new InstanceIdentifierGenerator(codec);
         this.readData = readData;
         this.writeData = writeData;
     }
@@ -39,16 +45,17 @@ public final class ObjectProxyAgent {
         if (!clazz.isInterface()) {
             interfaces = clazz.getInterfaces();
         }
-        InvocationHandler handler = new ProxyHandler<T>(instance, id);
+        VxeOpenDaylightIdentifier<?> vid = (VxeOpenDaylightIdentifier<?>) id;
+        InvocationHandler handler = new ProxyHandler<T>(instance, vid);
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(), interfaces, handler);
     }
 
     private class ProxyHandler<T> implements InvocationHandler {
 
         private Object instance = null;
-        private Identifier<? extends DataObject> id;
+        private VxeOpenDaylightIdentifier<?> id;
 
-        public ProxyHandler(Object instance, Identifier<? extends DataObject> id) {
+        public ProxyHandler(Object instance, VxeOpenDaylightIdentifier<?> id) {
             this.instance = instance;
             this.id = id;
         }
@@ -59,14 +66,45 @@ public final class ObjectProxyAgent {
             Object obj = method.invoke(instance, args);
             Class<?> returnType = method.getReturnType();
 
+            InstanceIdentifier<?> iid = id.getInstanceIdentifier();
+            readData.add(id);
+
             if (obj.getClass().isPrimitive()) {
                 return obj;
             } else if (!returnType.isInterface()) {
                 return obj;
             } else if (DataObject.class.isAssignableFrom(returnType)) {
-                return wrap(returnType, obj, id);
+                InstanceIdentifier<?> next = generator.get(iid, returnType, obj);
+                Identifier<? extends DataObject> nid = createFromId(id, next);
+                return wrap(returnType, obj, nid);
+            } else if (List.class.isAssignableFrom(returnType)) {
+                Class<?> elementType = (Class<?>)((ParameterizedType)method
+                                                    .getGenericReturnType())
+                                                    .getActualTypeArguments()[0];
+                return wrapList((List<?>) obj, elementType);
             }
             return wrap(returnType, obj, id);
+        }
+
+        @SuppressWarnings("unchecked")
+        private <E> Object wrapList(List<E> list, Class<?> elementType) {
+            InstanceIdentifier<?> iid = id.getInstanceIdentifier();
+            LOG.info("Root: {}", iid);
+            List<E> newList = new LinkedList<E>();
+            for (E e: list) {
+                InstanceIdentifier<?> next = generator.get(iid, elementType, e);
+                Identifier<? extends DataObject> nid = createFromId(id, next);
+
+                LOG.info("Element: {}", nid);
+                newList.add((E) wrap(elementType, e, nid));
+            }
+            return newList;
+        }
+
+        private <N extends DataObject> VxeOpenDaylightIdentifier<N> createFromId(
+                                                    VxeOpenDaylightIdentifier<?> id,
+                                                    InstanceIdentifier<N> next) {
+            return new VxeOpenDaylightIdentifier<N>(id.getType(), next);
         }
 
     }
