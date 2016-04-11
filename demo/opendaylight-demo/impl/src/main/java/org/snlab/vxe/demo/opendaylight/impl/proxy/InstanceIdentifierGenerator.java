@@ -8,16 +8,10 @@
 package org.snlab.vxe.demo.opendaylight.impl.proxy;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 import org.opendaylight.controller.md.sal.binding.impl.BindingToNormalizedNodeCodec;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NetworkTopology;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.NodeId;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.TopologyId;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.Topology;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.TopologyKey;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.Node;
-import org.opendaylight.yang.gen.v1.urn.tbd.params.xml.ns.yang.network.topology.rev131021.network.topology.topology.NodeKey;
 import org.opendaylight.yangtools.yang.binding.Augmentation;
 import org.opendaylight.yangtools.yang.binding.ChildOf;
 import org.opendaylight.yangtools.yang.binding.DataObject;
@@ -54,11 +48,13 @@ public final class InstanceIdentifierGenerator {
             } else {
                 return child(root, (Class<ChildOfDataObject<T>>)clazz);
             }
+        } else if (List.class.isAssignableFrom(clazz)) {
+            return child(root, (Class<ChildOfDataObject<T>>)clazz);
         }
         return root;
     }
 
-    private InstanceIdentifier<?> childWithKey(InstanceIdentifier<?> root,
+    public InstanceIdentifier<?> childWithKey(InstanceIdentifier<?> root,
                                                 Class<?> clazz, Identifier<?> key) {
         QName qname = extractNodeQName(clazz);
         Map<QName, Object> ykey = extractKey(qname, key);
@@ -67,29 +63,26 @@ public final class InstanceIdentifierGenerator {
         yiid = codec.toYangInstanceIdentifier(root).node(qname)
                     .node(new NodeIdentifierWithPredicates(qname, ykey));
 
-        LOG.info("Before: {}", codec.toYangInstanceIdentifier(root));
-        LOG.info("After: {}", yiid);
-        LOG.info("Maybe: {}", codec.toYangInstanceIdentifier(root).node(qname)
-                                .node(new NodeIdentifierWithPredicates(qname, ykey)));
-        InstanceIdentifier<?> expected;
-        expected = InstanceIdentifier
-                    .builder(NetworkTopology.class)
-                    .child(Topology.class, new TopologyKey(new TopologyId("flow:1")))
-                    .child(Node.class, new NodeKey(new NodeId("openflow:3"))).build();
-
-        LOG.info("Expected: {}", codec.toYangInstanceIdentifier(expected));
+        LOG.debug("Before: {}", codec.toYangInstanceIdentifier(root));
+        LOG.debug("After: {}", yiid);
 
         InstanceIdentifier<?> iid = codec.fromYangInstanceIdentifier(yiid);
-        LOG.info("Result: {}", iid);
+        LOG.debug("Result: {}", iid);
         return iid;
     }
 
     public static interface ChildOfDataObject<T> extends DataObject, ChildOf<T> {
     }
 
-    private <N extends DataObject & ChildOf<T>, T extends DataObject>
+    public <N extends DataObject & ChildOf<T>, T extends DataObject>
         InstanceIdentifier<?> child(InstanceIdentifier<T> root, Class<N> clazz) {
         return root.child(clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends DataObject> InstanceIdentifier<?> list(InstanceIdentifier<T> root,
+                                                                Class<?> elementType) {
+        return child(root, (Class<ChildOfDataObject<T>>)elementType);
     }
 
     private QName extractNodeQName(Class<?> clazz) {
@@ -145,7 +138,7 @@ public final class InstanceIdentifierGenerator {
             extends DataObject, Augmentation<T> {
     }
 
-    private <N extends DataObject & Augmentation<? super T>, T extends DataObject>
+    public <N extends DataObject & Augmentation<? super T>, T extends DataObject>
         InstanceIdentifier<?> augmentation(InstanceIdentifier<T> root,
                                                 Class<N> clazz) {
         InstanceIdentifier<N> niid = root.augmentation(clazz);

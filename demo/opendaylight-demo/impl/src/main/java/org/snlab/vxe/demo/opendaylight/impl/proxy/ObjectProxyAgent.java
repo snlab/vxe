@@ -25,6 +25,7 @@ import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylightIdentifier;
 
 public final class ObjectProxyAgent {
 
+    @SuppressWarnings("unused")
     private static Logger LOG = LoggerFactory.getLogger(ObjectProxyAgent.class);
 
     private Set<Identifier<?>> readData;
@@ -89,13 +90,17 @@ public final class ObjectProxyAgent {
         @SuppressWarnings("unchecked")
         private <E> Object wrapList(List<E> list, Class<?> elementType) {
             InstanceIdentifier<?> iid = id.getInstanceIdentifier();
-            LOG.info("Root: {}", iid);
+
+            InstanceIdentifier<?> listIid = generator.list(iid, elementType);
+            Identifier<? extends DataObject> listId = createFromId(id, listIid);
+
+            readData.add(listId);
+
             List<E> newList = new LinkedList<E>();
             for (E e: list) {
                 InstanceIdentifier<?> next = generator.get(iid, elementType, e);
                 Identifier<? extends DataObject> nid = createFromId(id, next);
 
-                LOG.info("Element: {}", nid);
                 newList.add((E) wrap(elementType, e, nid));
             }
             return newList;

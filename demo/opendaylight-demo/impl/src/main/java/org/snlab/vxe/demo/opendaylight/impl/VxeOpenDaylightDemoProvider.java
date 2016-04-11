@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.snlab.vxe.api.Tasklet;
 import org.snlab.vxe.api.TaskletFactory;
 import org.snlab.vxe.demo.opendaylight.impl.VxeOpenDaylight.OpenDaylightRpc;
+import org.snlab.vxe.demo.opendaylight.impl.application.VxeDemoTasklet;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
@@ -62,6 +63,8 @@ public class VxeOpenDaylightDemoProvider implements BindingAwareProvider,
         session.addRpcImplementation(VxeOpendaylightDemoService.class, this);
 
         initializeVxeOpenDaylight();
+
+        System.out.println("[VXE demo loaded]");
     }
 
     private void initializeVxeOpenDaylight() {
