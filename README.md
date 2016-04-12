@@ -120,11 +120,19 @@ method will be invoked when the function instance is submitted.
 
 ### Network Topology
 
-TBD
+In this demo we use a circular topology like this:
+
+~~~
+sw1 - sw2 - ... - sw(n) - sw1
+ |                 |
+h1                h2
+~~~
 
 ### The demonstration
 
 1.  **Launch the OpenDaylight controller**
+
+    Use SSH to log in the VM and go to the root folder of the project.
 
     Execute the following commands to start the OpenDaylight controller:
 
@@ -139,35 +147,52 @@ TBD
 
 1.  **Start mininet**
 
-    TBD
+    Use another SSH session to log in the VM and go to the root folder of the
+    project.
+
+    In the VM, use the following command to start the mininet.
+
+    ~~~
+    pushd demo/scripts/
+    sudo ./demonetwork.py 10 127.0.0.1
+    popd
+    ~~~
 
 1.  **Create the request**
 
-    TBD
+    Use a third SSH session to log in the VM and go to the root folder of the
+    project.
+
+    ~~~
+    pushd demo/scripts/
+    curl -u admin:admin -H "Content-type: application/json" \
+          -X POST --data-binary @example-input.json \
+          http://localhost:8181/restconf/operations/vxe-opendaylight-demo:setup-path
+    popd
+    ~~~
 
     Errors will be dumped to the karaf console, indicating that the execution
     has failed.
 
 1.  **Test the connectivities**
 
-    Execute `hostn0 ping hostn1` in mininet CLI.  This command will send ICMP
-    message from hostn0 to hostn1 and their MAC addresses will be learnt.  The
+    Execute `h1 ping h2` in mininet CLI.  This command will send ICMP
+    message from h1 to h2 and their MAC addresses will be learnt.  The
     topology will be updated and these data changes will trigger the function
     instance to be re-executed.  The path will be dumped in karaf console and
-    we can see that the connection between hostn0 to hostn1 has be set up.
+    it can be seen that the connection between h1 to h2 has be set up.
 
 1.  **Simulate link failures**
 
-    Execute `link n0 n1 down` in mininet CLI.  This command will change the
+    Execute `link s1 s2 down` in mininet CLI.  This command will change the
     status of the corresponding link to `DOWN`.  It will take a little while
     before OpenDaylight can update the topology and once it does, the new path
     will be dumped to the karaf console.
 
-    Use `hostn0 ping hostn1` to test the connection between hostn0 to hostn1 is
-    restored.
+    Use `h1 ping h2` to test the connection between h1 to h2 is restored.
 
 1.  **Simulate link restoration**
 
-    Execute `link n0 n1 up` in mininet CLI which will bring up the link.
+    Execute `link s1 s2 up` in mininet CLI which will bring up the link.
 
     The restored path will be dumped in the karaf console.
