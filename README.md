@@ -23,8 +23,8 @@ etc., can be conducted.  If we think of the control plane, which takes the
 running state of the network and user configurations to calculate the routing,
 as a function *F*, the function *N* of the networking system can be seen as:
 
-> SOMEONE PLEASE ADD A PICTURE HERE
->
+![Network Function](https://raw.githubusercontent.com/snlab/vxe-onug-hackathon-2016/master/doc/figures/network-function.png)
+
 > f(packet) = (F(state, configuration))(packet) = N(state, configuration, packet)
 
 Almost every network applications, the shortest-path routing algorithm for
