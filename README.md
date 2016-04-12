@@ -1,48 +1,103 @@
-# VXE: SDN Function Instance Store as a Mechanism to Automatically Implement Intents
+# VXE: Virtual eXecution Environment for SDN Applications
 
-Team members (Kai Gao, Jensen Zhang, Tony Wang, Shenshen Chen) of SNLAB implemented VXE, a tool to provide a Virtual eXecution Environment for building function-instance-based system like [FAST](), and a demo system by using VXE during the [ONUG Grand Challenge Hackathon](https://opennetworkingusergroup.com/onug-grand-challenge-hackathon/).
+In this project we implement a demo implementation of *FAST*, a data-driven
+runtime system aimed to solve the consistency problem in SDN control plane.
 
-## Problem and Goal
+## Team members
 
-Data-dependency is a basic property of many network control-plane functions. For example, basic routing such as shortest-path routing depends on network topology data. Going beyond basic routing, QoS routing depends on not only network topology data but also network resource allocation data. Going beyond routing, security functions (e.g., ACL, group based policy) depend heavily on configured security policy data. We refer to a generic data-dependent control-plane function as *f*, and a network control-plane may consist of a large number of such functions.
+[Gao, Kai](https://github.com/emiapwil) (Tsinghua University),
+[Zhang, Jingxuan Jensen](https://github.com/fno2010),
+[Wang, Xin Tony](https://github.com/TonyWang123),
+[Chen, Shenshen](https://github.com/css9091) (Tongji University)
 
-A key property of a data-dependent control function *f* is that if there is a change to its dependent data, the output of *f* using the old data may become invalid. Hence, it is essential that the output of *f* based on the new data be computed; otherwise, basic network services or security can be compromised. We refer to the problem of efficient, correct executions of data-dependent, generic network control functions in the presence of dependent data changes as the *efficient, correct control execution problem*.
+All developers are members of the [SNLab](http://snlab.github.io/), led by
+[Yang, Yang Richard](https://github.com/yryang).
 
-Emerging network operating systems (e.g. OpenDaylight, ONOS) recognize this fundamental issue but their solutions using data stores are low level and complex. Furthermore, these systems burden the programmer with handling the programming complexity of identifying dependent data and monitoring their changes, a roadblock to simple and flexible control plane design.
+## Problem Statement
 
-Therefore, our goal is to develop a Virtual eXecution Environment (VXE) which automatically handles data dependency tracking and re-execution for the control-plane function. Through the APIs provided by VXE, programmers can write the control-plane function regardless of the complexity of identifying dependent data and monitoring their changes. Moreover, to show the benefits of VXE, we develop a host-host intent writen by using VXE APIs.
+The abstraction of routing in the networking system, both traditional or in the
+context of *Softwared-Defined Networking* (SDN), can be modelled as a simple
+function *f*.  From a data-plane point of view, this function *f* takes the
+packet attributes as variables where operations, like **match**, **foward**,
+etc., can be conducted.  If we think of the control plane, which takes the
+running state of the network and user configurations to calculate the routing,
+as a function *F*, the function *N* of the networking system can be seen as:
+
+> SOMEONE PLEASE ADD A PICTURE HERE
+>
+> f(packet) = (F(state, configuration))(packet) = N(state, configuration, packet)
+
+Almost every network applications, the shortest-path routing algorithm for
+example, depend on certain network states and/or user configurations.  When the
+dependent data change, the result of the applications become invalid.  Thus, it
+is important to guarantee that the results of the applications are consistent
+with the current network-related data.
+
+Modern SDN controllers, such as Onix, OpenDaylight and ONOS, have come with the
+abstraction of *datastores* which provides low-level interfaces for applications
+to access the data and get notifications of changes.  Unfortunately, current
+systems put on the programmers the burden of identifying dependent data and
+monitoring their changes.  A more dangerous scenario is that applications form
+close loops, which puts the network in an inconsistent state.
+
+Meanwhile, as the networking system has a high demand on the performance,
+techniques such as asynchronous I/O are widely used, which also introduces
+complexities to the SDN programming.
+
+## Our Long-term Goal
+
+The long-term goal of our team, from a high-level perspective, is to solve the
+problem of consistency in the control plane and to simplify the SDN programming
+with an automatic, data-aware, and efficient runtime system.
 
 ## Challenges
 
-1. Automatic extraction of dependent data In order to release the burden of identifying dependent data and then monitoring their changes from programmers, the VXE system must have a method to extract dependent data from control-plane functions automatically. 
-2. Automatic handling data changes The second challenge is to handle the data changes automatically. Since the output of a data-dependent control function would be invalid if the dependent data changes, the VXE system must handle the data change event through the function doesn't define the onDataChange function explicitly.
+1.  *Automatically identify dependent data*
 
-## Solution Overview
+    The first step to simplify the SDN programming, the runtime must be able to
+    extract the dependent data automatically and release the burden from the
+    programmers.  The runtime should also be able to identify fine-grained data
+    dependencies to reduce false-positive data changes.
 
-### Architecture
+1.  *Automatically handle data changes*
 
-### Features
+    When a data change happens, the results of an application becomes invalid.
+    The runtime must handle the data changes automatically and thus save the
+    programmers from the extra complexity of cleaning up.
 
-- Automatic extraction of dependent data <!--(why it is hard, what is clever; small amount of false positives)-->
-- Automatic registration of listeners
-- Automatic reexecution
+1.  *Handle asynchronous operations internally*
+
+    The runtime must be able to take advantage of the asynchronous operations to
+    achieve better performance and to make it transparent for programmers.
+
+1.  *Efficiently execute the applications*
+
+    Applications can depend on the results of some other applications.  The
+    runtime system must be able to identify the *application dependencies* to
+    avoid unnecessary executions.
+
+## Solutions
+
+1.  In the demo we use proxies to record the data that are accessed by
+    applications.  To achieve fine-grained data dependencies, we plan to use
+    bytecode instrumentation and conduct information flow analysis.
+
+1.  In the demo we take advantage of the OpenDaylight datastore API.  However,
+    its notification mechanism has certain constraints and the functionalities
+    are compromised.  We plan to implement a specialized datastore for the
+    framework in the future.
+
+1.  In the demo we don't take advantage of the asynchronicity.  The future plan
+    is to use bytecode instrumentation to generate callback functions
+    automatically.
+
+1.  Multiple applications, or as we call them, *function instances*, are not
+    demonstrated in this demo.  We have introduced the concepts of *function
+    instance store* to manage all the function instances, constructing the
+    dependency graph between different applications and scheduling the execution
+    order.
+
 
 ## Hackathon Project
 
-### Prerequisites
 
-### VXE System
-
-### VXE Library
-
-## How to Run the Demo
-
-Switch to the `demo` directory and execute:
-
-~~~
-mvn clean install exec:exec
-~~~
-
-> **Tips**
-> 
-> 1. Run `mvn checkstyle:check` at the root directory before pushing your changes.
