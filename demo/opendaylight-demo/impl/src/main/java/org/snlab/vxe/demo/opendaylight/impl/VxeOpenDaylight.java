@@ -206,7 +206,7 @@ public class VxeOpenDaylight implements VirtualExecutionEnvironment {
                 rwt = null;
             }
 
-            if (successful) {
+            if (datastore != null) {
                 for (Identifier<?> id: datastore.getReadData()) {
                     VxeOpenDaylightIdentifier<?> vid;
                     vid = (VxeOpenDaylightIdentifier<?>) id;
