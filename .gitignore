@@ -20,6 +20,9 @@ workspace
 *.ipr
 *.iws
 
+# Vagrant
+.vagrant
+
 # build files
 *.class
 target
