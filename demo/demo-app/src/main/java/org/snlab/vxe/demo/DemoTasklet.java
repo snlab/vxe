@@ -1,3 +1,10 @@
+/*
+ * Copyright © 2016 SNLAB and others.  All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
 package org.snlab.vxe.demo;
 
 import java.util.Comparator;
@@ -11,9 +18,9 @@ import java.util.Queue;
 import org.snlab.vxe.api.Datastore;
 import org.snlab.vxe.api.Identifier;
 
-import org.snlab.vxe.api.VxeDatastore;
-import org.snlab.vxe.api.VxeEntryPoint;
-import org.snlab.vxe.api.VxeTasklet;
+import org.snlab.vxe.api.annotation.VxeDatastore;
+import org.snlab.vxe.api.annotation.VxeEntryPoint;
+import org.snlab.vxe.api.annotation.VxeTasklet;
 import org.snlab.vxe.demo.datastore.Link;
 import org.snlab.vxe.demo.datastore.Node;
 import org.snlab.vxe.demo.datastore.Path;
