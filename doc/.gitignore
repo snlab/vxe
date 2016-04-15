@@ -3,3 +3,7 @@
 *.bbl
 *.blg
 *.log
+*.nav
+*.snm
+*.out
+*.toc
