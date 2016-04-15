@@ -130,6 +130,18 @@ h1                h2
 
 ### The demonstration
 
+1.  **Setup VirtualBox**
+
+    Execute the followint commands to setup a virtualbox with the project
+    source code:
+
+    ~~~
+    cd <pathToProject>
+    vagrant up
+    ~~~
+
+    And you will get a virtual machine with mininet and pre-built project code.
+
 1.  **Launch the OpenDaylight controller**
 
     Use SSH to log in the VM and go to the root folder of the project.
@@ -137,7 +149,7 @@ h1                h2
     Execute the following commands to start the OpenDaylight controller:
 
     ~~~
-    pushd demo/opendaylight-demo
+    pushd vxe/demo/opendaylight-demo
     karaf/target/assembly/bin/karaf
     popd
     ~~~
@@ -153,7 +165,7 @@ h1                h2
     In the VM, use the following command to start the mininet.
 
     ~~~
-    pushd demo/scripts/
+    pushd vxe/demo/scripts/
     sudo ./demonetwork.py 10 127.0.0.1
     popd
     ~~~
@@ -164,7 +176,7 @@ h1                h2
     project.
 
     ~~~
-    pushd demo/scripts/
+    pushd vxe/demo/scripts/
     curl -u admin:admin -H "Content-type: application/json" \
           -X POST --data-binary @example-input.json \
           http://localhost:8181/restconf/operations/vxe-opendaylight-demo:setup-path
