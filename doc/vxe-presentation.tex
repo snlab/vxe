@@ -1,4 +1,4 @@
-\documentclass[aspectratio=169]{beamer}
+\documentclass[aspectratio=169, notes]{beamer}
 
 \usetheme{default}
 
@@ -22,16 +22,175 @@
 
 \begin{frame}
 	\titlepage
+	\note{
+		Hello, everyone! Nice to meet you all!
+
+		I'm Kai, a Ph.D student at Tsinghua University and my teammates are
+		Shenshen, Tony and Jensen who are all from Tongji University.  Today we
+		are going to present the \emph{Virtual eXecution Environment} for SDN
+		programming, which is aimed to solve the data consistency problem in the
+		control plane and to simplify programming in SDN.
+	}
 \end{frame}
 
 \begin{frame}{Outline}
 	\tableofcontents
+
+	\note{
+		Here is the outline of our presentation.
+
+		First we discuss a little bit about what kind of problems we are trying
+		to solve and why current solutions are not good enough.
+
+		Second we introduce the overall design of our blueprint and show what we
+		have implemented during the ONUG competition.
+
+		Finally we walk through the code and present a demo of the system.
+	}
 \end{frame}
 
 \section{Problem Statement}
 
+\begin{frame}{Problem Statement}
+
+	\begin{itemize}
+		\item Data consistency in the control plane
+		\item Complexity in SDN programming
+	\end{itemize}
+
+	\note{
+		Our group has been working on the problem of SDN programming models, in
+		the sense that we want to understand how SDN programming differs from
+		generic programming by identifying domain-specific features, and to
+		design a programming framework that satisfies the demand of correctness,
+		efficiency and simplicity.
+
+		In this presentation we discuss mainly about two issues that are
+		identified: the data consistency in the control plane and the
+		programming complexity in modern SDN systems.
+	}
+
+\end{frame}
+
+\begin{frame}{Data Consistency in the Control Plane}
+
+	\note{
+		Most SDN applications depend on certain network states or user
+		configurations and their final output includes resource allocations and
+		forwarding rules on devices.  All these input and output are modelled as
+		\emph{data} and the problem of data consistency has two meanings:
+
+		First, the data should be synchronized on different machines.  Most
+		modern controllers have provided mechanism such as distributed data base
+		to solve this.
+
+		Second, the output of an application should be consistent with the
+		input, which means if the input of the application changes, the output
+		may need to be updated.
+
+		Modern SDN controllers have provided the abstraction of datastore to
+		help solve these two consistency problems.  However, the mechanisms they
+		provide are low-level operations and make SDN programming complex.
+	}
+
+	\begin{itemize}
+		\item Programs in the network are \emph{data-centric}:
+			\begin{itemize}
+				\item Input: \emph{network states}, \emph{user configurations},
+					...
+				\item Output: \emph{resource allocation}, \emph{device
+					configurations}, ...
+			\end{itemize}
+		\item Two kinds of \emph{data consistency}:
+			\begin{itemize}
+				\item Different copies have identical values on distributed
+					machines.
+				\item The output of a program should be consistent
+					with the input.
+			\end{itemize}
+		\item Current solutions: the abstraction of \emph{datastore}
+			\begin{itemize}
+				\item Onix, OpenDaylight, ONOS, ...
+			\end{itemize}
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Programming Complexity}
+
+	\note{
+		The complexity of SDN programming comes from following aspects:
+
+		First is the development.
+
+		For example, to guarantee the data consistency we talked about in the
+		last slide, programmers must identify dependent data in the program,
+		register listeners to manage data changes and be very careful with
+		allocated resources.  Common techniques such as asynchronous I/O and
+		multi-threading may also lead to programming complexities.
+
+		Second is debugging.
+
+		Programming complexities often result in difficulty in reading the
+		source code, which makes it extremely hard to debug.  Also when a new
+		program is being tested in a real network, we want to make sure its
+		consequence is traceable and controllable.
+
+	}
+
+	\begin{itemize}
+		\item Development considerations:
+			\begin{itemize}
+				\item For \emph{data consistency}: identify dependent data,
+					manage data changes and resources
+				\item For \emph{performance}: asynchronous I/O, multi-threading, ...
+				\item ...
+			\end{itemize}
+		\item Debugging considerations:
+			\begin{itemize}
+				\item \emph{Source code}: readability
+				\item \emph{Runtime debugging}: data provenance, sandbox, ...
+			\end{itemize}
+	\end{itemize}
+
+\end{frame}
+
 \section{Overall Design}
 
+\begin{frame}{Motivations}
+
+	\begin{itemize}
+		\item Dependent data can be identified \emph{automatically}
+		\item
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Architecture}
+\end{frame}
+
 \section{Demo Project}
+
+\begin{frame}{VXE in OpenDaylight}
+
+	\begin{itemize}
+		\item The demo system is highly customized for OpenDaylight.
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Components}
+\end{frame}
+
+\begin{frame}{Workflow}
+\end{frame}
+
+\section{Thank-you}
+
+\begin{frame}
+	\begin{center}
+		\Large{Q \& A}
+	\end{center}
+\end{frame}
 
 \end{document}
