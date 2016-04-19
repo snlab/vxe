@@ -119,7 +119,7 @@
 \begin{frame}{Programming Complexity}
 
 	\note{
-		The complexity of SDN programming comes from following aspects:
+		The complexity of SDN programming can affect the following aspects:
 
 		First is the development.
 
@@ -159,19 +159,57 @@
 
 \begin{frame}{Motivations}
 
+	\note{
+		Our project is motivated by the following observations:
+
+		First, data consistency is an important property in the control plane
+		and should not be compromised.
+
+		Second, identifying data dependencies, as well as dealing with data
+		changes or managing allocated resources, can and should be handled
+		automatically, beyond the programmers' concern.
+
+		Finally, for debugging and security reasons, it is important to trace
+		and to control the behaviours and possible consequences of SDN programs.
+
+		Thus we propose the VXE system, hoping to achieve all the three targets.
+	}
+
 	\begin{itemize}
-		\item Dependent data can be identified \emph{automatically}
-		\item
+		\item Critical properties such as the data consistency \emph{must not be
+			compromised}.
+		\item The requirements for data consistency \emph{should be transparent to
+			programmers}.
+		\item The behaviours of programs \emph{must be traceable and
+			controllable}.
 	\end{itemize}
-
-\end{frame}
-
-\begin{frame}{Architecture}
 \end{frame}
 
 \section{Demo Project}
 
-\begin{frame}{VXE in OpenDaylight}
+\begin{frame}{The Prototype}
+
+	\note{
+		In the ONUG competition, we have implemented a simple version of the VXE
+		system to demonstrate the basic workflow.  This prototype system is
+		built on top of the OpenDaylight controller and we have implemented an
+		application to calculate the shortest path between two specific end
+		hosts and to set up the path using OpenFlow.
+
+		For simplicity, all the components are implemented in one single module.
+		When the module is loaded, it will initialize the simplified VXE system.
+
+		Users can use RESTCONF to invoke a RPC which eventually creates the
+		corresponding tasklet and submits it to the VXE system.
+
+		We also skip the step of information flow analysis in this demo and
+		simply mark all the accessed data as dependent.  Since we are using the
+		OpenDaylight datastore API, the runtime will register data change
+		listeners automatically.
+
+		As we can see from the source code, the programmers don't have to worry
+		about the data consistency.
+	}
 
 	\begin{itemize}
 		\item The demo system is highly customized for OpenDaylight.
