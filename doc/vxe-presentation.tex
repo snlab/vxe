@@ -26,10 +26,10 @@
 		Hello, everyone! Nice to meet you all!
 
 		I'm Kai, a Ph.D student at Tsinghua University and my teammates are
-		Shenshen, Tony and Jensen who are all from Tongji University.  Today we
+		Shenshen, Tony and Jensen, who are all from Tongji University.  Today we
 		are going to present the \emph{Virtual eXecution Environment} for SDN
-		programming, which is aimed to solve the data consistency problem in the
-		control plane and to simplify programming in SDN.
+		programming, which is aimed to solve the data consistency problem, and
+		to simplify programming in SDN.
 	}
 \end{frame}
 
@@ -40,10 +40,10 @@
 		Here is the outline of our presentation.
 
 		First we discuss a little bit about what kind of problems we are trying
-		to solve and why current solutions are not good enough.
+		to solve, and why current solutions are not good enough.
 
-		Second we introduce the overall design of our blueprint and show what we
-		have implemented during the ONUG competition.
+		Second we provide an overview of our proposal and show what we have
+		implemented during the ONUG competition.
 
 		Finally we walk through the code and present a demo of the system.
 	}
@@ -125,7 +125,7 @@
 
 		For example, to guarantee the data consistency we talked about in the
 		last slide, programmers must identify dependent data in the program,
-		register listeners to manage data changes and be very careful with
+		register listeners to manage data changes, and be very careful with
 		allocated resources.  Common techniques such as asynchronous I/O and
 		multi-threading may also lead to programming complexities.
 
@@ -157,10 +157,10 @@
 
 \section{Overall Design}
 
-\begin{frame}{Motivations}
+\begin{frame}{Overview}
 
 	\note{
-		Our project is motivated by the following observations:
+		Our project is motivated by the following conclusions:
 
 		First, data consistency is an important property in the control plane
 		and should not be compromised.
@@ -172,9 +172,10 @@
 		Finally, for debugging and security reasons, it is important to trace
 		and to control the behaviours and possible consequences of SDN programs.
 
-		Thus we propose the VXE system, hoping to achieve all the three targets.
+		Thus we propose the VXE system, hoping to satisfy all the three demands.
 	}
 
+	\textbf{Motivations}
 	\begin{itemize}
 		\item Critical properties such as the data consistency \emph{must not be
 			compromised}.
@@ -183,6 +184,20 @@
 		\item The behaviours of programs \emph{must be traceable and
 			controllable}.
 	\end{itemize}
+
+	\pause
+
+	\note{
+		What we want to provide, is a simple API for the SDN programs to get the
+		access to the datastore, and a powerful runtime where system
+		requirements, such as the data consistency, can be enforced.
+	}
+
+	\textbf{System design}
+	\begin{itemize}
+		\item Simple API: access the datastore and manage function instances
+		\item Powerful runtime: enforce system requirements
+	\end{itemize}
 \end{frame}
 
 \section{Demo Project}
@@ -190,43 +205,50 @@
 \begin{frame}{The Prototype}
 
 	\note{
-		In the ONUG competition, we have implemented a simple version of the VXE
-		system to demonstrate the basic workflow.  This prototype system is
-		built on top of the OpenDaylight controller and we have implemented an
-		application to calculate the shortest path between two specific end
-		hosts and to set up the path using OpenFlow.
+		In the ONUG competition, we have followed the design principles and have
+		implemented a simple version of the VXE system to demonstrate the basic
+		workflow.  This prototype system is built on top of the OpenDaylight
+		controller and we have implemented an application, which calculates the
+		shortest path between two specific end hosts and sets up the path
+		using OpenFlow.
 
-		For simplicity, all the components are implemented in one single module.
-		When the module is loaded, it will initialize the simplified VXE system.
-
-		Users can use RESTCONF to invoke a RPC which eventually creates the
-		corresponding tasklet and submits it to the VXE system.
-
-		We also skip the step of information flow analysis in this demo and
-		simply mark all the accessed data as dependent.  Since we are using the
-		OpenDaylight datastore API, the runtime will register data change
-		listeners automatically.
-
-		As we can see from the source code, the programmers don't have to worry
-		about the data consistency.
+		We have also implemented a graphical user interface to help observe the
+		results.
 	}
 
 	\begin{itemize}
-		\item The demo system is highly customized for OpenDaylight.
+		\item Use case:
+			\begin{itemize}
+				\item Host-to-host connections
+			\end{itemize}
+		\item Runtime implementation:
+			\begin{itemize}
+				\item Track data dependency: proxies
+				\item Manage data changes: use native OpenDaylight data change
+					listeners
+				\item Manage resources: enforce each RPC to have a
+					\texttt{clear} method to clear side effects
+			\end{itemize}
 	\end{itemize}
 
 \end{frame}
 
-\begin{frame}{Components}
+\begin{frame}{Demo}
+
 \end{frame}
 
-\begin{frame}{Workflow}
-\end{frame}
-
-\section{Thank-you}
+\section*{Thank-you}
 
 \begin{frame}
+	\note{
+		That's all for our demonstration, thank you all for your time.
+
+		We'd like to get feedbacks and to answer any questions.
+	}
+
 	\begin{center}
+		\underline{\LARGE{THANK YOU}}\\
+		\vspace{1em}
 		\Large{Q \& A}
 	\end{center}
 \end{frame}
