@@ -137,6 +137,7 @@ h1                h2
 
     ~~~
     cd <pathToProject>
+    git submodule update --init --recursive
     vagrant up
     ~~~
 

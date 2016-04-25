@@ -1,0 +1,3 @@
+[submodule "vxe-ui"]
+	path = vxe-ui
+	url = https://github.com/snlab/vxe-ui.git

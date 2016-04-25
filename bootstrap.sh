@@ -28,3 +28,9 @@ sudo -u vagrant wget -q -O /home/vagrant/.m2/settings.xml https://raw.githubuser
 cd /home/vagrant/vxe
 MAVEN_HOME="/home/vagrant/bin/apache-maven" sudo -u vagrant /home/vagrant/bin/mvn clean install -DskipTests
 sudo -u vagrant ln -s /home/vagrant/bin/vxe /home/vagrant/vxe/karaf/target/assemble/bin/karaf
+
+# Build VXE Web UI
+cd /home/vagrant/vxe/vxe-ui
+HOME=/home/vagrant sudo -u vagrant npm install
+sudo -u vagrant echo "node /home/vagrant/vxe/vxe-ui/server.js" > /home/vagrant/bin/vxe-ui
+chmod a+x /home/vagrant/bin/vxe-ui
